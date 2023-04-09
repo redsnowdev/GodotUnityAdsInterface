@@ -150,13 +150,13 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
     }
 
     public void loadAd(String placementId) {
-        UnityAds.load(placementId);
+        UnityAds.load(placementId,loadListener);
     }
 
     public boolean show(String placementId) {
         if (isAdReady) {
             try {
-                UnityAds.show(getActivity(), placementId);
+                UnityAds.show(getActivity(),placementId , showListener);
             } catch (Exception ex) {
                 Log.e(TAG, ex.getMessage());
                 Log.d("I Godot" , "Show Failed with exception" + ex.getMessage());
