@@ -24,10 +24,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitializationListener {
 
-    private boolean isAdReady = false;
+    HashMap<String , Boolean> isReadyHashMap = new HashMap<String , Boolean>();
     private boolean isInitialized = false;
     private final String TAG = "UnityAdsInterface";
     private SignalInfo UnityAdsReady = new SignalInfo("UnityAdsReady");
@@ -97,7 +98,7 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
         public void onUnityAdsAdLoaded(String placementId) {
 //            UnityAds.show((Activity)getApplicationContext(), adUnitId, new UnityAdsShowOptions(), showListener);
             emitSignal( UnityAdsReady.getName() );
-            isAdReady = true;
+            isReadyHashMap.put(placementId , true);
             Log.i("I Godot" , "Ad Loaded");
         }
 
@@ -105,7 +106,7 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
         public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
             Log.i("I Godot" , "Ad Failed to Load");
             Log.e("UnityAds", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
-            isAdReady = false;
+            isReadyHashMap.put(placementId , false);
         }
     };
 
@@ -146,7 +147,14 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
     };
 
     public boolean isReady(String placementId) {
-        return isAdReady;
+        Boolean isReadyOrNot = false;
+        if (isReadyHashMap.containsKey(placementId)) {
+            // contains key
+            isReadyOrNot = isReadyHashMap.get(placementId);
+        } else {
+            isReadyOrNot = false;
+        }
+        return isReadyOrNot;
     }
 
     public void loadAd(String placementId) {
@@ -154,7 +162,14 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
     }
 
     public boolean show(String placementId) {
-        if (isAdReady) {
+        Boolean isReadyOrNot = false;
+        if (isReadyHashMap.containsKey(placementId)) {
+            // contains key
+            isReadyOrNot = isReadyHashMap.get(placementId);
+        } else {
+            isReadyOrNot = false;
+        }
+        if (isReadyOrNot) {
             try {
                 UnityAds.show(getActivity(),placementId , showListener);
             } catch (Exception ex) {
@@ -170,161 +185,3 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
         }
     }
 }
-
-/*
-//    public UnityAdsInterface(Godot godot) {
-//        super(godot);
-//    }
-//
-//    @NonNull
-//    @Override
-//    public String getPluginName() {
-//        return "UnityAdsInterface";
-//    }
-//
-//    @NonNull
-//    @Override
-//    public List<String> getPluginMethods() {
-//        return Arrays.asList(
-//                "getHelloWorld"
-//        );
-//    }
-//    public String getHelloWorld(){
-//        return "Hello Godot";
-//    }
- */
-
-/*
-private boolean isAdReady = false;
-    private boolean isInitialized = false;
-    private final String TAG = "UnityAdsInterface";
-    private SignalInfo UnityAdsReady = new SignalInfo("UnityAdsReady");
-    private SignalInfo UnityAdsStart = new SignalInfo("UnityAdsStart");
-    private SignalInfo UnityAdsFinish = new SignalInfo("UnityAdsFinish", String.class, String.class);
-    private SignalInfo UnityAdsError = new SignalInfo("UnityAdsError", String.class);
-
-    public UnityAdsInterface(Godot godot) {
-        super(godot);
-    }
-
-    @androidx.annotation.NonNull
-    @Override
-    public String getPluginName() {
-        return "UnityAdsGodot";
-    }
-
-    @NonNull
-    @Override
-    public List<String> getPluginMethods() {
-        return new ArrayList<String>() {
-            {
-                add("initialise");
-                add("loadAd");
-                add("show");
-                add("isReady");
-            }
-        };
-    }
-
-    @NonNull
-    @Override
-    public Set<SignalInfo> getPluginSignals() {
-        return new HashSet<SignalInfo>() {
-            {
-                add(UnityAdsReady);
-                add(UnityAdsStart);
-                add(UnityAdsFinish);
-                add(UnityAdsError);
-            }
-        };
-    }
-
-    public void initialise(String appId, boolean testMode) {
-        try {
-            UnityAds.initialize(getActivity(), appId, testMode, this);
-        } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
-        }
-    }
-
-    @Override
-    public void onInitializationComplete() {
-        isInitialized = true;
-    }
-
-    @Override
-    public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
-        isInitialized = false;
-        Log.e("UnityAdsExample", "Unity Ads initialization failed with error: [" + error + "] " + message);
-    }
-
-    private IUnityAdsLoadListener loadListener = new IUnityAdsLoadListener() {
-        @Override
-        public void onUnityAdsAdLoaded(String placementId) {
-//            UnityAds.show((Activity)getApplicationContext(), adUnitId, new UnityAdsShowOptions(), showListener);
-            emitSignal( UnityAdsReady.getName() );
-            isAdReady = true;
-        }
-
-        @Override
-        public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
-            Log.e("UnityAdsExample", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
-            isAdReady = false;
-        }
-    };
-
-    private IUnityAdsShowListener showListener = new IUnityAdsShowListener() {
-        @Override
-        public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
-            Log.e("UnityAdsExample", "Unity Ads failed to show ad for " + placementId + " with error: [" + error + "] " + message);
-            int state = 0;
-            emitSignal(UnityAdsFinish.getName(), placementId, String.format("%d", state));
-        }
-
-        @Override
-        public void onUnityAdsShowStart(String placementId) {
-            Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
-            emitSignal(UnityAdsStart.getName());
-        }
-
-        @Override
-        public void onUnityAdsShowClick(String placementId) {
-            Log.v("UnityAdsExample", "onUnityAdsShowClick: " + placementId);
-        }
-
-        @Override
-        public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
-            Log.v("UnityAdsExample", "onUnityAdsShowComplete: " + placementId);
-            if (state.equals(UnityAds.UnityAdsShowCompletionState.COMPLETED)) {
-                // Reward the user for watching the ad to completion
-                emitSignal(UnityAdsFinish.getName(), placementId, String.format("%d", 2));
-            } else {
-                // Do not reward the user for skipping the ad
-                emitSignal(UnityAdsFinish.getName(), placementId, String.format("%d", 1));
-            }
-        }
-    };
-
-    public boolean isReady(String placementId) {
-        return isAdReady;
-    }
-
-    public void loadAd(String placementId) {
-        UnityAds.load(placementId);
-    }
-
-    public boolean show(String placementId) {
-        if (isAdReady) {
-            try {
-                UnityAds.show(getActivity(), placementId);
-            } catch (Exception ex) {
-                Log.e(TAG, ex.getMessage());
-                return false;
-            }
-            return true;
-        } else {
-            Log.i(TAG, "Adds not ready");
-            return false;
-        }
-    }
- */
