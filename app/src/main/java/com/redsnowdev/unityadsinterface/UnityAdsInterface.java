@@ -99,12 +99,12 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
 //            UnityAds.show((Activity)getApplicationContext(), adUnitId, new UnityAdsShowOptions(), showListener);
             emitSignal( UnityAdsReady.getName() );
             isReadyHashMap.put(placementId , true);
-            Log.i("I Godot" , "Ad Loaded");
+            Log.i("I Godot" , "Ad Loaded - " + placementId);
         }
 
         @Override
         public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
-            Log.i("I Godot" , "Ad Failed to Load");
+            Log.i("I Godot" , "Ad Failed to Load - " + placementId);
             Log.e("UnityAds", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
             isReadyHashMap.put(placementId , false);
         }
@@ -116,26 +116,26 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
             Log.e("UnityAds", "Unity Ads failed to show ad for " + placementId + " with error: [" + error + "] " + message);
             int state = 0;
             emitSignal(UnityAdsFinish.getName(), placementId, String.format("%d", state));
-            Log.i("I Godot" , "Ad Show Failure");
+            Log.i("I Godot" , "Ad Show Failure - " + placementId);
         }
 
         @Override
         public void onUnityAdsShowStart(String placementId) {
             Log.v("UnityAds", "onUnityAdsShowStart: " + placementId);
-            Log.i("I Godot" , "Ad Show Start");
+            Log.i("I Godot" , "Ad Show Start - " + placementId);
             emitSignal(UnityAdsStart.getName());
         }
 
         @Override
         public void onUnityAdsShowClick(String placementId) {
             Log.v("UnityAdsExample", "onUnityAdsShowClick: " + placementId);
-            Log.i("I Godot" , "Ad Show Click");
+            Log.i("I Godot" , "Ad Show Click - " + placementId);
         }
 
         @Override
         public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
             Log.v("UnityAdsExample", "onUnityAdsShowComplete: " + placementId);
-            Log.i("I Godot" , "Ad Show Complete " + placementId);
+            Log.i("I Godot" , "Ad Show Complete - " + placementId);
             if (state.equals(UnityAds.UnityAdsShowCompletionState.COMPLETED)) {
                 // Reward the user for watching the ad to completion
                 emitSignal(UnityAdsFinish.getName(), placementId, String.format("%d", 2));
@@ -180,7 +180,7 @@ public class UnityAdsInterface extends GodotPlugin  implements IUnityAdsInitiali
             return true;
         } else {
             Log.i(TAG, "Adds not ready");
-            Log.d("I Godot" , "Ad Not ready");
+            Log.d("I Godot" , "Ad Not ready - " + placementId);
             return false;
         }
     }
